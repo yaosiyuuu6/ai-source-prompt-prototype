@@ -110,6 +110,10 @@
     .result-summary { position: sticky; top: 0; z-index: 4; display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 0 18px; border-bottom: 1px solid var(--border); background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(6px); }
     .result-summary strong { font-size: 14px; font-weight: 600; }
     .result-summary span { color: var(--text-secondary); font-size: 13px; }
+    .result-progress { display: inline-flex; align-items: center; gap: 8px; }
+    .result-progress-count { color: #1688d9 !important; font-size: 12px !important; font-variant-numeric: tabular-nums; }
+    .result-progress-track { position: relative; width: 82px; height: 6px; overflow: hidden; border-radius: 999px; background: #e8edf1; }
+    .result-progress-bar { display: block; height: 100%; border-radius: inherit; background: #1599e5; }
     .result-status { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; color: var(--success) !important; }
     .result-status::before { width: 7px; height: 7px; content: ""; border-radius: 50%; background: var(--success); }
     .table-wrap { min-width: 1180px; }
@@ -286,8 +290,11 @@
         if (closePromptButton) closePromptButton.addEventListener("click", (event) => { event.stopPropagation(); promptTabOpen = false; if (activeTab === "prompt") activeTab = resultTabs[0] ? `result:${resultTabs[0]}` : "empty"; renderWorkspace(); });
       }
       function tableHTML(fileName) {
+        const progressCurrent = 211;
+        const progressTotal = 363;
+        const progressPercent = Math.min(100, Math.max(0, (progressCurrent / progressTotal) * 100));
         const rows = dataRows.map((row) => `<tr><td class="seq-cell">${row.seq}</td><td class="title-cell">${row.title}</td><td>${row.publish}</td><td>${row.effect}</td><td>${row.issuer}</td><td>${row.site}</td><td><a class="link" href="#" onclick="return false">${row.source}</a></td><td>${row.path}</td><td><a class="link" href="#" onclick="return false">${row.caseUrl}</a></td><td><a class="link" href="#" onclick="return false">${row.log}</a></td></tr>`).join("");
-        return `<section class="panel result-panel is-active" aria-label="找源结果_${escapeHTML(fileName)}"><div class="result-summary"><strong>找源结果_${escapeHTML(fileName)}</strong><span>共 ${dataRows.length} 条</span><span class="result-status">找源完成</span></div><div class="table-wrap"><table><colgroup><col style="width:72px"><col style="width:220px"><col style="width:116px"><col style="width:116px"><col style="width:168px"><col style="width:168px"><col style="width:196px"><col style="width:260px"><col style="width:110px"><col style="width:80px"></colgroup><thead><tr><th>seq</th><th>标题</th><th>颁布日期</th><th>实施日期</th><th>颁布者</th><th>网站名称</th><th>数据源链接</th><th>路径</th><th>案例地址</th><th>日志</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+        return `<section class="panel result-panel is-active" aria-label="找源结果_${escapeHTML(fileName)}"><div class="result-summary"><strong>找源结果_${escapeHTML(fileName)}</strong><div class="result-progress" role="progressbar" aria-label="找源进度" aria-valuemin="0" aria-valuemax="${progressTotal}" aria-valuenow="${progressCurrent}"><span class="result-progress-count">${progressCurrent}/${progressTotal}</span><span class="result-progress-track" aria-hidden="true"><span class="result-progress-bar" style="width:${progressPercent}%"></span></span></div><span class="result-status">找源完成</span></div><div class="table-wrap"><table><colgroup><col style="width:72px"><col style="width:220px"><col style="width:116px"><col style="width:116px"><col style="width:168px"><col style="width:168px"><col style="width:196px"><col style="width:260px"><col style="width:110px"><col style="width:80px"></colgroup><thead><tr><th>seq</th><th>标题</th><th>颁布日期</th><th>实施日期</th><th>颁布者</th><th>网站名称</th><th>数据源链接</th><th>路径</th><th>案例地址</th><th>日志</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
       }
       function promptHTML() {
         const isCustom = promptScope === "custom";
@@ -329,7 +336,7 @@
       scopeSelect.addEventListener("change", () => { const next = scopeSelect.value; if (!next) { promptScope = ""; promptTabOpen = false; if (activeTab === "prompt") activeTab = resultTabs[0] ? `result:${resultTabs[0]}` : "empty"; renderWorkspace(); return; } promptScope = next; promptTabOpen = true; activeTab = "prompt"; renderWorkspace(); });
       openFilesButton.addEventListener("click", openFilePicker);
       excelInput.addEventListener("change", () => addFiles(excelInput.files));
-      sendButton.addEventListener("click", () => { if (!scopeSelect.value) { showToast("请先选择找源范围"); scopeSelect.focus(); return; } if (!selectedFiles.length) { showToast("请先添加需要找源的文件"); openFilesButton.focus(); return; } resultTabs = selectedFiles.map((file) => file.name); promptScope = scopeSelect.value; activeTab = `result:${resultTabs[0]}`; renderWorkspace(); showToast(`已创建 ${resultTabs.length} 个文件结果标签页`); });
+      sendButton.addEventListener("click", () => { if (!scopeSelect.value) { showToast("请先选择找源范围"); scopeSelect.focus(); return; } if (!selectedFiles.length) { showToast("请先添加需要找源的文件"); openFilesButton.focus(); return; } resultTabs = selectedFiles.map((file) => file.name); promptScope = scopeSelect.value; promptTabOpen = true; activeTab = `result:${resultTabs[0]}`; renderWorkspace(); showToast(`已创建 ${resultTabs.length} 个文件结果标签页`); });
       renderFiles();
       renderWorkspace();
       setScopeOpen(true);
